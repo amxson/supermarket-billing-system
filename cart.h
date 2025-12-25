@@ -10,5 +10,7 @@ struct CartNode {
 void addToCart(int id, int qty);
 void viewCart();
 float generateBill();
+void removeFromCart(int id);
+void clearCart();
 
 #endif
