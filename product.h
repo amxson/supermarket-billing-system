@@ -6,16 +6,20 @@ using namespace std;
 
 struct Product {
     int id;
-    string name;
+    char name[30];
     float price;
     int quantity;
 };
 
-// Product management functions
+
 void addProduct();
+void displayProducts();
+void searchProduct();
 void updateProduct();
 void deleteProduct();
-void searchProduct();
-void displayProducts();
+
+
+int getAllProducts(Product arr[], int maxSize);
+void insertProductFromFile(const Product& p);
 
 #endif
