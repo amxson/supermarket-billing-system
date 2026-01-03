@@ -1,69 +1,132 @@
 #include "category.h"
-#include "product.h"
 #include <iostream>
-#include <unordered_map>
+#include <limits>
 using namespace std;
 
-extern unordered_map<int, Product> inventory;
-
+// ===== BST ROOT =====
 CategoryNode* root = nullptr;
 
-void insertCategory(const string& name) {
+// ===== INSERT CATEGORY =====
+void insertCategory(int id, const string& name) {
     CategoryNode** curr = &root;
+
     while (*curr) {
-        if (name < (*curr)->name) curr = &(*curr)->left;
-        else if (name > (*curr)->name) curr = &(*curr)->right;
-        else return;
+        if (id < (*curr)->id)
+            curr = &((*curr)->left);
+        else if (id > (*curr)->id)
+            curr = &((*curr)->right);
+        else
+            return; 
     }
-    *curr = new CategoryNode{name, {}, nullptr, nullptr};
+
+    *curr = new CategoryNode{id, name, {}, nullptr, nullptr};
 }
 
-CategoryNode* searchCategory(const string& name) {
+// ===== SEARCH BY ID =====
+CategoryNode* searchCategoryByID(int id) {
     CategoryNode* curr = root;
+
     while (curr) {
-        if (name == curr->name) return curr;
-        else if (name < curr->name) curr = curr->left;
+        if (id == curr->id) return curr;
+        if (id < curr->id) curr = curr->left;
         else curr = curr->right;
     }
     return nullptr;
 }
 
-void addProductToCategory(const string& categoryName, int productID) {
-    CategoryNode* cat = searchCategory(categoryName);
-    if (!cat) {
-        insertCategory(categoryName);
-        cat = searchCategory(categoryName);
-    }
-    cat->productIDs.push_back(productID);
+// ===== DISPLAY ALL CATEGORIES (INORDER, recursive) =====
+void displayCategoriesHelper(CategoryNode* node) {
+    if (!node) return;
+
+    displayCategoriesHelper(node->left);
+    cout << "ID: " << node->id << " | Name: " << node->name << endl;
+    displayCategoriesHelper(node->right);
 }
 
 void displayCategories() {
-    vector<CategoryNode*> stack;
-    CategoryNode* curr = root;
-    while (curr || !stack.empty()) {
-        while (curr) {
-            stack.push_back(curr);
-            curr = curr->left;
+    if (!root) {
+        cout << "No categories available.\n";
+        return;
+    }
+    cout << "\n--- Categories ---\n";
+    displayCategoriesHelper(root);
+}
+
+// ===== ADD PRODUCT TO CATEGORY =====
+void addProductToCategory(int categoryId, int productId) {
+    CategoryNode* cat = searchCategoryByID(categoryId);
+    if (!cat) return;
+
+    for (int id : cat->productIDs)
+        if (id == productId) return;
+
+    cat->productIDs.push_back(productId);
+}
+
+// ===== REMOVE PRODUCT FROM CATEGORY =====
+void removeProductFromCategory(int categoryId, int productId) {
+    CategoryNode* cat = searchCategoryByID(categoryId);
+    if (!cat) return;
+
+    auto& v = cat->productIDs;
+    for (auto it = v.begin(); it != v.end(); ++it) {
+        if (*it == productId) {
+            v.erase(it);
+            return;
         }
-        curr = stack.back(); stack.pop_back();
-        cout << "- " << curr->name << endl;
-        curr = curr->right;
     }
 }
 
-void displayProductsInCategory(const string& categoryName) {
-    CategoryNode* cat = searchCategory(categoryName);
-    if (!cat) {
-        cout << "Category not found.\n";
+// ===== GET PRODUCT IDS =====
+vector<int> getProductIDsInCategory(int categoryId) {
+    CategoryNode* cat = searchCategoryByID(categoryId);
+    if (!cat) return {};
+    return cat->productIDs;
+}
+
+// ===== USER: ADD CATEGORY =====
+void addCategory() {
+    int id;
+    string name;
+
+    cout << "Enter Category ID: ";
+    cin >> id;
+
+    if (searchCategoryByID(id)) {
+        cout << "Category already exists.\n";
         return;
     }
-    cout << "--- Products in " << cat->name << " ---\n";
-    for (int id : cat->productIDs) {
-        if (inventory.count(id)) {
-            Product &p = inventory[id];
-            cout << "ID: " << p.id << " | " << p.name 
-                 << " | Price: " << p.price 
-                 << " | Qty: " << p.quantity << endl;
-        }
+
+    cout << "Enter Category Name: ";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    getline(cin, name);
+
+    insertCategory(id, name);
+    cout << "Category added.\n";
+}
+
+// ===== USER: VIEW =====
+void viewCategories() {
+    displayCategories();
+}
+
+// ===== USER: SELECT CATEGORY =====
+int selectCategory() {
+    if (!root) {
+        cout << "No categories available.\n";
+        return -1;
     }
+
+    displayCategories();
+
+    int id;
+    cout << "Enter Category ID: ";
+    cin >> id;
+
+    if (!searchCategoryByID(id)) {
+        cout << "Invalid category.\n";
+        return -1;
+    }
+
+    return id;
 }

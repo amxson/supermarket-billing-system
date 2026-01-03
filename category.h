@@ -5,19 +5,28 @@
 #include <vector>
 using namespace std;
 
+// ===== BST NODE =====
 struct CategoryNode {
+    int id;
     string name;
     vector<int> productIDs;
     CategoryNode* left;
     CategoryNode* right;
 };
 
-extern CategoryNode* root;
-
-void insertCategory(const string& name);
-CategoryNode* searchCategory(const string& name);
-void addProductToCategory(const string& categoryName, int productID);
+// ===== CORE BST OPS =====
+void insertCategory(int id, const string& name);
+CategoryNode* searchCategoryByID(int id);
 void displayCategories();
-void displayProductsInCategory(const string& categoryName);
+
+// ===== PRODUCT ↔ CATEGORY LINKING =====
+void addProductToCategory(int categoryId, int productId);
+void removeProductFromCategory(int categoryId, int productId);
+vector<int> getProductIDsInCategory(int categoryId);
+
+// ===== USER HELPERS =====
+int selectCategory();        
+void addCategory();         
+void viewCategories();      
 
 #endif
