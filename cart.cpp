@@ -1,11 +1,15 @@
 #include "cart.h"
 #include "product.h"
 #include <iostream>
+#include <stack>
 
 using namespace std;
 
 // ===== Linked List Head =====
 CartItem* head = nullptr;
+
+// ===== Stack for transaction history =====
+stack<TransactionItem> transactionHistory;
 
 // ===== Add to cart (interactive) =====
 void addToCart() {
@@ -165,13 +169,47 @@ double generateBill() {
         Product& p = inventory[curr->productId];
         total += p.price * curr->quantity;
 
+        // Push into transaction stack
+        transactionHistory.push({curr->productId, curr->quantity, false});
+
         CartItem* temp = curr;
         curr = curr->next;
         delete temp;
     }
 
+    // Push sentinel to mark end of this transaction
+    transactionHistory.push({0, 0, true});
+
     head = nullptr;
 
     cout << "Bill generated. Total = " << total << endl;
     return total;
+}
+
+// ===== View Transaction History =====
+void viewTransactionHistory() {
+    if (transactionHistory.empty()) {
+        cout << "No transactions yet.\n";
+        return;
+    }
+
+    stack<TransactionItem> tempStack = transactionHistory;
+    cout << "\n--- Transaction History (Latest First) ---\n";
+
+    while (!tempStack.empty()) {
+        TransactionItem item = tempStack.top();
+        tempStack.pop();
+
+        if (item.isEnd) {
+            cout << "----------------------\n";
+            continue;
+        }
+
+        Product& p = inventory[item.productId];
+        cout << "ID: " << p.id
+             << " | Name: " << p.name
+             << " | Qty: " << item.quantity
+             << " | Total: " << p.price * item.quantity
+             << endl;
+    }
 }

@@ -105,6 +105,7 @@ int main() {
         cout << "11. View Cart\n";
         cout << "12. Remove from Cart\n";
         cout << "13. Generate Bill\n";
+        cout << "14. View Transaction History\n"; // New
         cout << "0. Exit\n";
         cout << "Choose: ";
 
@@ -118,46 +119,23 @@ int main() {
         int productId, categoryId;
 
         switch (choice) {
-            case 1:
-                addCategory();
-                break;
-
-            case 2:
-                viewCategories();
-                break;
-
-            case 3:
-                addProduct();
-                break;
-
-            case 4:
-                displayProducts();
-                break;
-
-            case 5:
-                searchProduct();
-                break;
-
-            case 6:
-                updateProduct();
-                break;
-
-            case 7:
-                deleteProduct();
-                break;
-
-            case 8:
-                viewProductsByCategory();
-                break;
+            case 1: addCategory(); break;
+            case 2: viewCategories(); break;
+            case 3: addProduct(); break;
+            case 4: displayProducts(); break;
+            case 5: searchProduct(); break;
+            case 6: updateProduct(); break;
+            case 7: deleteProduct(); break;
+            case 8: viewProductsByCategory(); break;
 
             case 9:
                 cout << "Enter Product ID to reassign: ";
                 cin >> productId;
-                if (cin.fail()) {
-                    cin.clear();
-                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                    cout << "Invalid input.\n";
-                    break;
+                if (cin.fail()) { 
+                    cin.clear(); 
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+                    cout << "Invalid input.\n"; 
+                    break; 
                 }
                 categoryId = selectCategory();
                 if (categoryId != -1) {
@@ -166,25 +144,18 @@ int main() {
                 }
                 break;
 
-            case 10:
-                addProductToCart();
-                break;
-
-            case 11:
-                viewCart();
-                break;
+            case 10: addProductToCart(); break;
+            case 11: viewCart(); break;
 
             case 12:
-                // show cart first (user-friendly)
                 viewCart();
-
                 cout << "\nEnter Product ID to remove: ";
                 cin >> productId;
-                if (cin.fail()) {
-                    cin.clear();
-                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                    cout << "Invalid input.\n";
-                    break;
+                if (cin.fail()) { 
+                    cin.clear(); 
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+                    cout << "Invalid input.\n"; 
+                    break; 
                 }
                 removeFromCart(productId);
                 break;
@@ -192,10 +163,13 @@ int main() {
             case 13: {
                 double total = generateBill();
                 cout << "Total Bill = " << total << endl;
-                if (total > 0)
-                    cout << "Cart has been cleared after billing.\n";
+                if (total > 0) cout << "Cart has been cleared after billing.\n";
                 break;
             }
+
+            case 14: // New: Transaction history
+                viewTransactionHistory();
+                break;
 
             case 0:
                 saveProducts();
