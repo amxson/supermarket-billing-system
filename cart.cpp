@@ -2,7 +2,7 @@
 #include "product.h"
 #include <iostream>
 #include <stack>
-
+#include <string>
 using namespace std;
 
 // ===== Linked List Head =====
@@ -53,8 +53,8 @@ void addToCart() {
     // insert new node at head
     CartItem* newNode = new CartItem{productId, quantity, head};
     head = newNode;
-
     p.quantity -= quantity;
+
     cout << "Product added to cart.\n";
 }
 
@@ -90,8 +90,8 @@ void addToCartByID(int productId, int quantity) {
 
     CartItem* newNode = new CartItem{productId, quantity, head};
     head = newNode;
-
     p.quantity -= quantity;
+
     cout << "Product added to cart.\n";
 }
 
@@ -147,7 +147,6 @@ void viewCart() {
 int getCartSize() {
     int count = 0;
     CartItem* curr = head;
-
     while (curr) {
         count++;
         curr = curr->next;
@@ -155,7 +154,7 @@ int getCartSize() {
     return count;
 }
 
-// ===== Generate bill =====
+// ===== Generate bill (with promocode) =====
 double generateBill() {
     if (!head) {
         cout << "Cart is empty.\n";
@@ -165,28 +164,59 @@ double generateBill() {
     double total = 0.0;
     CartItem* curr = head;
 
+    // temporary stack to reverse order for correct transaction history
+    stack<TransactionItem> tempStack;
+
     while (curr) {
         Product& p = inventory[curr->productId];
         total += p.price * curr->quantity;
 
-        // Push into transaction stack
-        transactionHistory.push({curr->productId, curr->quantity, false});
-
-        CartItem* temp = curr;
+        tempStack.push({curr->productId, curr->quantity, false});
         curr = curr->next;
+    }
+
+    // push reversed transactions to main transaction stack
+    while (!tempStack.empty()) {
+        transactionHistory.push(tempStack.top());
+        tempStack.pop();
+    }
+
+    // ===== PROMOCODE CHECK =====
+    cout << "Do you have a promocode? (y/n): ";
+    char ans;
+    cin >> ans;
+    double discount = 0.0;
+
+    if (ans == 'y' || ans == 'Y') {
+        cout << "Enter promocode: ";
+        string code;
+        cin >> code;
+
+        if (code == "super1") {
+            discount = 0.10;
+            cout << "Promocode applied! 10% discount.\n";
+        } else {
+            cout << "Invalid promocode.\n";
+        }
+    }
+
+    double discountedTotal = total - (total * discount);
+
+    // push end marker for this transaction
+    transactionHistory.push({0, 0, true});
+
+    // clear cart
+    while (head) {
+        CartItem* temp = head;
+        head = head->next;
         delete temp;
     }
 
-    // Push sentinel to mark end of this transaction
-    transactionHistory.push({0, 0, true});
-
-    head = nullptr;
-
-    cout << "Bill generated. Total = " << total << endl;
-    return total;
+    cout << "Bill generated. Total = " << discountedTotal << endl;
+    return discountedTotal;
 }
 
-// ===== View Transaction History =====
+// ===== View transaction history =====
 void viewTransactionHistory() {
     if (transactionHistory.empty()) {
         cout << "No transactions yet.\n";
@@ -194,22 +224,21 @@ void viewTransactionHistory() {
     }
 
     stack<TransactionItem> tempStack = transactionHistory;
-    cout << "\n--- Transaction History (Latest First) ---\n";
+    cout << "\n--- Transaction History ---\n";
 
     while (!tempStack.empty()) {
         TransactionItem item = tempStack.top();
         tempStack.pop();
 
         if (item.isEnd) {
-            cout << "----------------------\n";
-            continue;
+            cout << "=== End of Transaction ===\n";
+        } else {
+            Product& p = inventory[item.productId];
+            cout << "ID: " << p.id
+                 << " | Name: " << p.name
+                 << " | Qty: " << item.quantity
+                 << " | Total: " << p.price * item.quantity
+                 << endl;
         }
-
-        Product& p = inventory[item.productId];
-        cout << "ID: " << p.id
-             << " | Name: " << p.name
-             << " | Qty: " << item.quantity
-             << " | Total: " << p.price * item.quantity
-             << endl;
     }
 }
