@@ -1,16 +1,16 @@
 #include "cart.h"
 #include "product.h"
 #include <iostream>
-#include <unordered_map>
 
 using namespace std;
 
-// ===== Cart storage =====
-unordered_map<int, CartItem> cart;
+// ===== Linked List Head =====
+CartItem* head = nullptr;
 
-// ===== Add to cart by asking for ID & quantity =====
+// ===== Add to cart (interactive) =====
 void addToCart() {
     int productId, quantity;
+
     cout << "Enter product ID: ";
     cin >> productId;
 
@@ -27,24 +27,34 @@ void addToCart() {
         return;
     }
 
-    Product &p = inventory[productId];
+    Product& p = inventory[productId];
 
     if (quantity > p.quantity) {
         cout << "Not enough stock! Available: " << p.quantity << endl;
-        return; 
+        return;
     }
 
-    if (cart.find(productId) != cart.end()) {
-        cart[productId].quantity += quantity;
-    } else {
-        cart[productId] = {productId, quantity};
+    // check if product already exists in cart
+    CartItem* curr = head;
+    while (curr) {
+        if (curr->productId == productId) {
+            curr->quantity += quantity;
+            p.quantity -= quantity;
+            cout << "Product quantity updated in cart.\n";
+            return;
+        }
+        curr = curr->next;
     }
+
+    // insert new node at head
+    CartItem* newNode = new CartItem{productId, quantity, head};
+    head = newNode;
 
     p.quantity -= quantity;
     cout << "Product added to cart.\n";
 }
 
-// ===== Add directly by ID & quantity =====
+// ===== Add to cart by ID & quantity =====
 void addToCartByID(int productId, int quantity) {
     if (!productExists(productId)) {
         cout << "Invalid product ID.\n";
@@ -56,74 +66,112 @@ void addToCartByID(int productId, int quantity) {
         return;
     }
 
-    Product &p = inventory[productId];
+    Product& p = inventory[productId];
 
     if (quantity > p.quantity) {
         cout << "Not enough stock! Available: " << p.quantity << endl;
-        return; 
+        return;
     }
 
-    if (cart.find(productId) != cart.end()) {
-        cart[productId].quantity += quantity;
-    } else {
-        cart[productId] = {productId, quantity};
+    CartItem* curr = head;
+    while (curr) {
+        if (curr->productId == productId) {
+            curr->quantity += quantity;
+            p.quantity -= quantity;
+            cout << "Product quantity updated in cart.\n";
+            return;
+        }
+        curr = curr->next;
     }
+
+    CartItem* newNode = new CartItem{productId, quantity, head};
+    head = newNode;
 
     p.quantity -= quantity;
-    cout << "Product added to cart.\n"; 
+    cout << "Product added to cart.\n";
 }
 
-// ===== Remove item from cart =====
+// ===== Remove from cart =====
 void removeFromCart(int productId) {
-    auto it = cart.find(productId);
-    if (it != cart.end()) {
-        inventory[productId].quantity += it->second.quantity;
-        cart.erase(it);
-        cout << "Product removed from cart.\n";
-    } else {
-        cout << "Product not found in cart.\n";
+    CartItem* curr = head;
+    CartItem* prev = nullptr;
+
+    while (curr) {
+        if (curr->productId == productId) {
+            inventory[productId].quantity += curr->quantity;
+
+            if (prev)
+                prev->next = curr->next;
+            else
+                head = curr->next;
+
+            delete curr;
+            cout << "Product removed from cart.\n";
+            return;
+        }
+        prev = curr;
+        curr = curr->next;
     }
+
+    cout << "Product not found in cart.\n";
 }
 
 // ===== View cart =====
 void viewCart() {
-    if (cart.empty()) {
+    if (!head) {
         cout << "Cart is empty.\n";
         return;
     }
 
     cout << "Cart Items:\n";
-    for (auto &item : cart) {
-        Product &p = inventory[item.second.productId];
+    CartItem* curr = head;
+
+    while (curr) {
+        Product& p = inventory[curr->productId];
         cout << "ID: " << p.id
              << " | Name: " << p.name
              << " | Price: " << p.price
-             << " | Qty: " << item.second.quantity
-             << " | Total: " << p.price * item.second.quantity
+             << " | Qty: " << curr->quantity
+             << " | Total: " << p.price * curr->quantity
              << endl;
+
+        curr = curr->next;
     }
 }
 
-// ===== Get number of items in cart =====
+// ===== Cart size =====
 int getCartSize() {
-    return cart.size();
+    int count = 0;
+    CartItem* curr = head;
+
+    while (curr) {
+        count++;
+        curr = curr->next;
+    }
+    return count;
 }
 
-// ===== Generate bill and return total =====
+// ===== Generate bill =====
 double generateBill() {
-    if (cart.empty()) {
+    if (!head) {
         cout << "Cart is empty.\n";
         return 0.0;
     }
 
     double total = 0.0;
-    for (auto &item : cart) {
-        Product &p = inventory[item.second.productId];
-        total += p.price * item.second.quantity;
+    CartItem* curr = head;
+
+    while (curr) {
+        Product& p = inventory[curr->productId];
+        total += p.price * curr->quantity;
+
+        CartItem* temp = curr;
+        curr = curr->next;
+        delete temp;
     }
 
-    cout << "Bill generated. Total = " << total << endl;
+    head = nullptr;
 
-    cart.clear();
+    cout << "Bill generated. Total = " << total << endl;
     return total;
 }

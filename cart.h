@@ -1,25 +1,21 @@
 #ifndef CART_H
 #define CART_H
 
-#include <unordered_map>
-#include <vector>
-#include <iostream>
 using namespace std;
 
+// ===== Linked List Node =====
 struct CartItem {
     int productId;
     int quantity;
+    CartItem* next;
 };
 
-// Cart storage
-extern unordered_map<int, CartItem> cart;
-
-// Functions
-void addToCart();
+// ===== Cart operations =====
+void addToCart();                       
 void addToCartByID(int productId, int quantity);
 void removeFromCart(int productId);
 void viewCart();
 int getCartSize();
-double generateBill(); // return total bill
+double generateBill();                  
 
 #endif
