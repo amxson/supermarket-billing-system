@@ -2,6 +2,7 @@
 #include "category.h"
 #include <iostream>
 #include <limits>
+#include <cmath>
 #include <cctype>   // for isalpha
 using namespace std;
 
@@ -33,7 +34,7 @@ double getValidDouble(const string& prompt, double minValue = 0.0) {
     while (true) {
         cout << prompt;
         cin >> value;
-        if (cin.fail() || value < minValue) {
+        if (cin.fail() || !std::isfinite(value) || value < minValue) {
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             cout << "Invalid input. Please enter a number >= " << minValue << ".\n";
@@ -52,7 +53,7 @@ string getValidString(const string& prompt) {
         getline(cin, s);
         bool valid = true;
         for (char c : s) {
-            if (!isalpha(c) && c != ' ') { // allow spaces
+            if (!isalpha(static_cast<unsigned char>(c)) && c != ' ') { // allow spaces
                 valid = false;
                 break;
             }

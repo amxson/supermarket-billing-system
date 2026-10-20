@@ -1,1 +1,4 @@
-*.exe
+/build/
+/supermarket
+/supermarket.exe
+/products.dat.tmp
